@@ -1,9 +1,11 @@
-﻿using Discord;
+﻿using System.Net;
+using Discord;
 using Discord.WebSocket;
 using Discord.Interactions;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using DotNetEnv;
+using System.Text;
 
 class Program
 {
@@ -42,6 +44,24 @@ class Program
         _client.SlashCommandExecuted += GetCustomCommandExecuteFuncs;
 
         _client.InteractionCreated += HandleInteraction;
+
+        _ = Task.Run(async () =>
+        {
+            var _listener = new HttpListener();
+
+            _listener.Prefixes.Add("http://*:10000/");
+            _listener.Start();
+
+            while (true)
+            {
+                var ctx = await _listener.GetContextAsync();
+
+                var response = Encoding.UTF8.GetBytes("CoderBot Alive!");
+
+                ctx.Response.OutputStream.Write(response);
+                ctx.Response.Close();
+            }
+        });
 
         Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "TOKEN.env"));
         string token = Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN");
