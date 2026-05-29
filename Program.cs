@@ -9,6 +9,7 @@ using System.Text;
 
 class Program
 {
+    #nullable enable
     private DiscordSocketClient _client;
     private InteractionService _interactionService;
     private IServiceProvider _services;
@@ -39,6 +40,28 @@ class Program
         
         _client.Ready += OnReady;
 
+        _client.Ready += async () =>
+        {
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(5000);
+
+                var channel = _client.GetChannel(1509914782680219688) as IMessageChannel;
+
+                if (channel == null)
+                {
+                    return;
+                }
+
+                while (true)
+                {
+                    await channel.SendMessageAsync("Bot Active, time passed since last report: 5 minutes");
+
+                    await Task.Delay(TimeSpan.FromMinutes(5));
+                }
+            });
+        };
+
         _client.MessageReceived += OnMessage;
 
         _client.SlashCommandExecuted += GetCustomCommandExecuteFuncs;
@@ -64,7 +87,7 @@ class Program
         });
 
         Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "TOKEN.env"));
-        string token = Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN");
+        string? token = Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN");
         Console.WriteLine(token == null ? "TOKEN = NULL" : "TOKEN LOADED");
         await _client.LoginAsync(TokenType.Bot, token);
         await _client.StartAsync();
