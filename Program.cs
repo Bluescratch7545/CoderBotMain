@@ -43,35 +43,36 @@ class Program
         _client.Ready += async () =>
         {
             _ = Task.Run(async () =>
-            {
-                await Task.Delay(2000);
+                {   
+                    await Task.Delay(5000);
 
-                var channel = _client.GetChannel(1509914782680219688) as IMessageChannel;
+                    var channel = _client.GetChannel(1509914782680219688) as IMessageChannel;
 
-                if (channel == null)
-                {
-                    return;
-                }
+                    if (channel == null) return;
 
-                while (true)
-                {
-                    await channel.SendMessageAsync("Bot Active, time passed since last report: 5 minutes");
-                    var messages = await channel.GetMessagesAsync(limit: 11).FlattenAsync();
-
-                    var toDelete = messages
-                        .Skip(1)
-                        .Take(10);
-
-                    foreach (var m in toDelete)
+                    while (true)
                     {
-                        await channel.DeleteMessageAsync(m);
+                        try
+                        {
+                            await channel.SendMessageAsync("Bot Active, time passed since last report: 5 minutes (not fake)");
+
+                            var messages = await channel.GetMessagesAsync(11).FlattenAsync();
+
+                            var toDelete = messages.Skip(1).Take(10);
+
+                            foreach (var m in toDelete)
+                            {
+                                await channel.DeleteMessageAsync(m);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                           Console.WriteLine(ex);
+                        }
+
+                        await Task.Delay(TimeSpan.FromMinutes(5));
                     }
-
-                    Console.WriteLine("Bot alive");
-
-                    await Task.Delay(TimeSpan.FromSeconds(2));
-                }
-            });
+                });
         };
 
         _client.MessageReceived += OnMessage;
