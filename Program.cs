@@ -44,7 +44,7 @@ class Program
         {
             _ = Task.Run(async () =>
             {
-                await Task.Delay(5000);
+                await Task.Delay(2000);
 
                 var channel = _client.GetChannel(1509914782680219688) as IMessageChannel;
 
@@ -56,8 +56,20 @@ class Program
                 while (true)
                 {
                     await channel.SendMessageAsync("Bot Active, time passed since last report: 5 minutes");
+                    var messages = await channel.GetMessagesAsync(limit: 11).FlattenAsync();
 
-                    await Task.Delay(TimeSpan.FromMinutes(5));
+                    var toDelete = messages
+                        .Skip(1)
+                        .Take(10);
+
+                    foreach (var m in toDelete)
+                    {
+                        await channel.DeleteMessageAsync(m);
+                    }
+
+                    Console.WriteLine("Bot alive");
+
+                    await Task.Delay(TimeSpan.FromSeconds(2));
                 }
             });
         };
